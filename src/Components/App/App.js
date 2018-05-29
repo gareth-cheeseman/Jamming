@@ -13,13 +13,26 @@ class App extends Component {
         { name: 'name2', artist: 'artist2', album: 'album2', id: '2' },
         { name: 'name3', artist: 'artist3', album: 'album3', id: '3' }
       ],
-      playlistName : 'playlist1',
+      playlistName: 'playlist1',
       playlistTracks: [
         { name: 'pname1', artist: 'partist1', album: 'palbum1', id: 'p1' },
         { name: 'pname2', artist: 'partist2', album: 'palbum2', id: 'p2' },
         { name: 'pname3', artist: 'partist3', album: 'palbum3', id: 'p3' }
       ]
     };
+    this.addTrack = this.addTrack.bind(this);
+  }
+
+  addTrack(track) {
+    if (
+      this.state.playlistTracks.find(savedTrack => savedTrack.id === track.id)
+    ) {
+      return;
+    } else {
+      const newPlaylistTracks = this.state.playlistTracks.slice();
+      newPlaylistTracks.push(track);
+      this.setState({ playlistTracks: newPlaylistTracks });
+    }
   }
 
   render() {
@@ -31,8 +44,11 @@ class App extends Component {
         <div className="App">
           {/*Add a SearchBar component*/}
           <div className="App-playlist">
-            <SearchResults searchResults={this.state.searchResults} />
-            <Playlist playlistName={this.state.playlistName} playlistTracks={this.state.playlistTracks} />
+            <SearchResults searchResults={this.state.searchResults} onAdd={this.addTrack} />
+            <Playlist
+              playlistName={this.state.playlistName}
+              playlistTracks={this.state.playlistTracks}
+            />
           </div>
         </div>
       </div>
