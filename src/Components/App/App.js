@@ -25,7 +25,7 @@ class App extends Component {
         <div className="App">
           {/*Add a SearchBar component*/}
           <div className="App-playlist">
-            {/*Add a SearchResults component*/}
+            <SearchResults searchResults={this.state.searchResults}/>
             {/*Add a Playlist component*/}
           </div>
         </div>
