@@ -9,20 +9,21 @@ class App extends Component {
     super(props);
     this.state = {
       searchResults: [
-        { name: 'name1', artist: 'artist1', album: 'album1', id: '1' },
-        { name: 'name2', artist: 'artist2', album: 'album2', id: '2' },
-        { name: 'name3', artist: 'artist3', album: 'album3', id: '3' }
+        { name: 'name1', artist: 'artist1', album: 'album1', id: '1', uri: 'u1' },
+        { name: 'name2', artist: 'artist2', album: 'album2', id: '2', uri: 'u2' },
+        { name: 'name3', artist: 'artist3', album: 'album3', id: '3', uri: 'u3' }
       ],
       playlistName: 'playlist1',
       playlistTracks: [
-        { name: 'pname1', artist: 'partist1', album: 'palbum1', id: 'p1' },
-        { name: 'pname2', artist: 'partist2', album: 'palbum2', id: 'p2' },
-        { name: 'pname3', artist: 'partist3', album: 'palbum3', id: 'p3' }
+        { name: 'pname1', artist: 'partist1', album: 'palbum1', id: 'p1', uri: 'pu1' },
+        { name: 'pname2', artist: 'partist2', album: 'palbum2', id: 'p2', uri: 'pu2' },
+        { name: 'pname3', artist: 'partist3', album: 'palbum3', id: 'p3', uri: 'pu3' }
       ]
     };
     this.addTrack = this.addTrack.bind(this);
     this.removeTrack = this.removeTrack.bind(this);
     this.updatePlaylistName = this.updatePlaylistName.bind(this);
+    this.savePlaylist = this.savePlaylist.bind(this);
   }
 
   addTrack(track) {
@@ -48,6 +49,10 @@ class App extends Component {
     this.setState({playlistName: name})
   }
 
+  savePlaylist(){
+    const trackURIs = this.playlistTracks.map(track => track.uri);
+  }
+
   render() {
     return (
       <div>
@@ -66,6 +71,7 @@ class App extends Component {
               playlistTracks={this.state.playlistTracks}
               onRemove={this.removeTrack}
               onNameChange={this.updatePlaylistName}
+              onSave={this.savePlaylist}
             />
           </div>
         </div>
