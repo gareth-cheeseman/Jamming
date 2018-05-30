@@ -28,12 +28,10 @@ const Spotify = {
         if (!response.ok) throw Error(response.statusText);
         return response;
       })
-      .catch(error => {
-        console.log(error);
-      })
+      .then(response => response.json())
       .then(jsonResponse => {
         console.log(jsonResponse);
-        if (jsonResponse.tracks.items.length() > 0) {
+        if (jsonResponse.tracks.items.length > 0) {
           return jsonResponse.tracks.items.map(track => ({
             id: track.id,
             name: track.name,
