@@ -8,10 +8,12 @@ const Spotify = {
     }
     const url = window.location.href;
     if (url.includes('access_token')) {
-      accessToken = url.match('/access_token=([^&]*)/');
-      const expiresIn = url.match('/expires_in=([^&]*)/');
+      let token = url.match(/access_token=([^&]*)/);
+      const expiresIn = url.match(/expires_in=([^&]*)/);
       window.setTimeout(() => (accessToken = ''), expiresIn * 1000);
       window.history.pushState('Access Token', null, '/');
+      accessToken = token[1];
+      return accessToken;
     } else {
       window.location = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public&redirect_uri=${redirectURI}`;
     }
@@ -22,8 +24,15 @@ const Spotify = {
       `https://api.spotify.com/v1/search?type=track&q=${searchTerm}`,
       { headers: { Authorization: `Bearer ${this.getAccessToken()}` } }
     )
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) throw Error(response.statusText);
+        return response;
+      })
+      .catch(error => {
+        console.log(error);
+      })
       .then(jsonResponse => {
+        console.log(jsonResponse);
         if (jsonResponse.tracks.items.length() > 0) {
           return jsonResponse.tracks.items.map(track => ({
             id: track.id,
