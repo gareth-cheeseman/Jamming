@@ -9,12 +9,19 @@ class Track extends Component {
   }
 
   renderAction(isRemoval) {
-    if(isRemoval){
-      return <a className="Track-action" onClick={this.removeTrack}>-</a>
+    if (isRemoval) {
+      return (
+        <a className="Track-action" onClick={this.removeTrack}>
+          -
+        </a>
+      );
     } else {
-      return <a className="Track-action" onClick={this.addTrack}>+</a>
+      return (
+        <a className="Track-action" onClick={this.addTrack}>
+          +
+        </a>
+      );
     }
-
   }
 
   addTrack() {
