@@ -18,21 +18,23 @@ const Spotify = {
     if (accessToken) {
       return accessToken;
     }
+
     const url = window.location.href;
-    if (url.includes('access_token')) {
-      accessToken = url.match(/access_token=([^&]*)/)[1];
-      const expiresIn = url.match(/expires_in=([^&]*)/)[1];
-      window.setTimeout(() => (accessToken = ''), expiresIn * 1000);
-      window.history.pushState('Access Token', null, '/');
-      return accessToken;
-    } else {
+
+    if (!url.includes('access_token')) {
       window.location = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&scope=playlist-modify-public&redirect_uri=${redirectURI}`;
     }
+    accessToken = url.match(/access_token=([^&]*)/)[1];
+    const expiresIn = url.match(/expires_in=([^&]*)/)[1];
+    window.setTimeout(() => (accessToken = ''), expiresIn * 1000);
+    window.history.pushState('Access Token', null, '/');
+    return accessToken;
   },
 
   search(searchTerm) {
+    let token = this.getAccessToken();
     return fetch(`${baseURL}/search?type=track&q=${searchTerm}`, {
-      headers: { Authorization: `Bearer ${this.getAccessToken()}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
       .then(this.handleResponse, this.handleNetworkError)
       .then(jsonResponse => {
@@ -72,17 +74,19 @@ const Spotify = {
       .then(this.handleResponse, this.handleNetworkError)
       .then(jsonResponse => (playlistID = jsonResponse.id))
       .then(() => {
-        return fetch(`${baseURL}/users/${userID}/playlists/${playlistID}/tracks`, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify({
-            uris: trackURIs
-          })
-        });
+        return fetch(
+          `${baseURL}/users/${userID}/playlists/${playlistID}/tracks`,
+          {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+              uris: trackURIs
+            })
+          }
+        );
       })
       .then(this.handleResponse)
-      .then(jsonResponse => playlistID = jsonResponse.snapshot_id)
-      
+      .then(jsonResponse => (playlistID = jsonResponse.snapshot_id));
   }
 };
 
