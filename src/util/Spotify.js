@@ -30,12 +30,22 @@ const Spotify = {
     }
   },
 
-  search(searchTerm) {
-    return fetch(`${baseURL}/search?type=track&q=${searchTerm}`, {
-      headers: { Authorization: `Bearer ${this.getAccessToken()}` }
-    })
-      .then(this.handleResponse, this.handleNetworkError)
-      .then(jsonResponse => {
+  async search(searchTerm) {
+    const token = this.getAccessToken();
+    if (!token) {
+      return []; //to prevent error on fetch with undefined token
+    }
+
+    try {
+      const response = await fetch(
+        `${baseURL}/search?type=track&q=${searchTerm}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.ok) {
+        const jsonResponse = await response.json();
         if (jsonResponse.tracks.items.length > 0) {
           return jsonResponse.tracks.items.map(track => ({
             id: track.id,
@@ -47,42 +57,66 @@ const Spotify = {
         } else {
           return [];
         }
-      });
+      }
+    } catch (error) {
+      console.log(error);
+    }
   },
 
-  savePlaylist(playlistName, trackURIs) {
+  async savePlaylist(playlistName, trackURIs) {
     if (!playlistName || !trackURIs || trackURIs.length === 0) return;
 
     const token = this.getAccessToken();
     const headers = { Authorization: `Bearer ${token}` };
     let userID = '';
     let playlistID = '';
-    return fetch(`${baseURL}/me`, { headers: headers })
-      .then(this.handleResponse, this.handleNetworkError)
-      .then(jsonResponse => (userID = jsonResponse.id))
-      .then(() => {
-        return fetch(`${baseURL}/users/${userID}/playlists`, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify({
-            name: playlistName
-          })
-        });
-      })
-      .then(this.handleResponse, this.handleNetworkError)
-      .then(jsonResponse => (playlistID = jsonResponse.id))
-      .then(() => {
-        return fetch(`${baseURL}/users/${userID}/playlists/${playlistID}/tracks`, {
+
+    try {
+      const response = await fetch(`${baseURL}/me`, { headers: headers });
+      if (response.ok) {
+        const jsonResponse = await response.json();
+        userID = jsonResponse.id;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
+    try {
+      const response = await fetch(`${baseURL}/users/${userID}/playlists`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          name: playlistName
+        })
+      });
+
+      if (response.ok) {
+        const jsonResponse = await response.json();
+        playlistID = jsonResponse.id;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
+    try {
+      const response = fetch(
+        `${baseURL}/users/${userID}/playlists/${playlistID}/tracks`,
+        {
           method: 'POST',
           headers: headers,
           body: JSON.stringify({
             uris: trackURIs
           })
-        });
-      })
-      .then(this.handleResponse)
-      .then(jsonResponse => playlistID = jsonResponse.snapshot_id)
-      
+        }
+      );
+
+      if (response.ok) {
+        const jsonResponse = await response.json();
+        playlistID = jsonResponse.snapshot_id;
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
 };
 
