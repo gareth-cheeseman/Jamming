@@ -19,7 +19,39 @@ const Spotify = {
     }
   },
 
-  async search(searchTerm) {
+  async handleFetch(url, headers, jsonResponseFunc){
+    console.log("bang! handleFetch");
+    try {
+    const response =  await fetch(url, headers);
+    if(response.ok){
+      const jsonResponse = await response.json();
+      const returnValue = await jsonResponseFunc(jsonResponse);
+      return returnValue;
+    }
+    } catch (error) {
+      console.log(error);
+    }
+  },
+
+  mapTracks(jsonResponse){
+    console.log("bang! mapTracks");
+    if (jsonResponse.tracks.items.length > 0) {
+      const tracks =
+       jsonResponse.tracks.items.map(track => ({
+        id: track.id,
+        name: track.name,
+        artist: track.artists[0].name,
+        album: track.album.name,
+        uri: track.uri
+      }));
+      console.log(tracks);
+      return tracks;
+    } else {
+      return [];
+    }
+  },
+
+  search(searchTerm) {
     if (!searchTerm) return [];
 
     const token = this.getAccessToken();
@@ -31,31 +63,33 @@ const Spotify = {
       return []; //to prevent error on fetch with undefined token
     }
 
-    try {
-      const response = await fetch(
-        `${baseURL}/search?type=track&q=${searchTerm}`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+    return this.handleFetch(`${baseURL}/search?type=track&q=${searchTerm}`, { headers: { Authorization: `Bearer ${token}` } }, this.mapTracks);
 
-      if (response.ok) {
-        const jsonResponse = await response.json();
-        if (jsonResponse.tracks.items.length > 0) {
-          return jsonResponse.tracks.items.map(track => ({
-            id: track.id,
-            name: track.name,
-            artist: track.artists[0].name,
-            album: track.album.name,
-            uri: track.uri
-          }));
-        } else {
-          return [];
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    // try {
+    //   const response = await fetch(
+    //     `${baseURL}/search?type=track&q=${searchTerm}`,
+    //     {
+    //       headers: { Authorization: `Bearer ${token}` }
+    //     }
+    //   );
+
+    //   if (response.ok) {
+    //     const jsonResponse = await response.json();
+    //     if (jsonResponse.tracks.items.length > 0) {
+    //       return jsonResponse.tracks.items.map(track => ({
+    //         id: track.id,
+    //         name: track.name,
+    //         artist: track.artists[0].name,
+    //         album: track.album.name,
+    //         uri: track.uri
+    //       }));
+    //     } else {
+    //       return [];
+    //     }
+    //   }
+    // } catch (error) {
+    //   console.log(error);
+    // }
   },
 
   async savePlaylist(playlistName, trackURIs) {
