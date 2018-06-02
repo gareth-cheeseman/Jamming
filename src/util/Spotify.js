@@ -20,8 +20,14 @@ const Spotify = {
   },
 
   async search(searchTerm) {
+    if (!searchTerm) return [];
+
     const token = this.getAccessToken();
+
     if (!token) {
+      window.alert(
+        'Authorizing your link to Spotify, please re-enter your search again'
+      );
       return []; //to prevent error on fetch with undefined token
     }
 
