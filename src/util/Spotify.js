@@ -1,5 +1,5 @@
 const clientId = '554f083f9c764ed1825048cc595775bd';
-const redirectURI = 'http://localhost:3000/';
+const redirectURI = 'http://greatest-playlist.surge.sh/';
 const baseURL = 'https://api.spotify.com/v1';
 let accessToken;
 const Spotify = {
