@@ -1,7 +1,24 @@
 class FetchService {
-  static fetchService(url, headers) {
-    return fetch(url, headers).then(response => {
-      if (response.status !== '200') {
+  static get(url, token) {
+    const options = {
+      headers: { Authorization: `Bearer ${token}` }
+    };
+    return fetch(url, options).then(response => {
+      if (response.status !== 200) {
+        throw response;
+      }
+      return response.json();
+    });
+  }
+
+  static post(url, token, body) {
+    const options = {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body)
+    };
+    return fetch(url, options).then(response => {
+      if (response.status !== 200) {
         throw response;
       }
       return response.json();

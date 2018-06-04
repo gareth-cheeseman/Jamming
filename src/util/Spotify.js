@@ -25,6 +25,7 @@ const Spotify = {
     if (!searchTerm) return [];
 
     const token = this.getAccessToken();
+    const url = `${baseURL}/search?type=track&q=${searchTerm}`;
 
     if (!token) {
       window.alert(
@@ -33,10 +34,7 @@ const Spotify = {
       return []; //to prevent error on fetch with undefined token
     }
 
-    return FetchService.fetchService(
-      `${baseURL}/search?type=track&q=${searchTerm}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    ).then(jsonResponse => {
+    return FetchService.get(url, token).then(jsonResponse => {
       if (jsonResponse.tracks.items.length > 0) {
         return jsonResponse.tracks.items.map(track => ({
           id: track.id,
@@ -55,43 +53,21 @@ const Spotify = {
     if (!playlistName || !trackURIs || trackURIs.length === 0) return;
 
     const token = this.getAccessToken();
-    const headers = { Authorization: `Bearer ${token}` };
     let userID = '';
-    let playlistID = '';
 
-    return FetchService.fetchService(`${baseURL}/me`, {
-      headers: headers
-    })
-      .then(jsonResponse => {
-        userID = jsonResponse.id;
-      })
-      .then(
-        FetchService.fetchService(`${baseURL}/users/${userID}/playlists`, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify({
-            name: playlistName
-          })
-        })
-      )
-      .then(jsonResponse => {
-        playlistID = jsonResponse.id;
-      })
-      .then(
-        FetchService.fetchService(
+    return FetchService.get(`${baseURL}/me`, token).then(jsonResponse => {
+      userID = jsonResponse.id;
+      return FetchService.post(`${baseURL}/users/${userID}/playlists`, token, {
+        name: playlistName
+      }).then(jsonResponse => {
+        const playlistID = jsonResponse.id;
+        return FetchService.post(
           `${baseURL}/users/${userID}/playlists/${playlistID}/tracks`,
-          {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({
-              uris: trackURIs
-            })
-          }
-        )
-      )
-      .then(jsonResponse => {
-        playlistID = jsonResponse.snapshot_id;
+          token,
+          { uris: trackURIs }
+        );
       });
+    });
   }
 };
 
