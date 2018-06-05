@@ -1,3 +1,5 @@
+import FetchService from './FetchService';
+
 const clientId = '554f083f9c764ed1825048cc595775bd';
 const redirectURI = 'http://greatest-playlist.surge.sh/';
 const baseURL = 'https://api.spotify.com/v1';
@@ -19,10 +21,11 @@ const Spotify = {
     }
   },
 
-  async search(searchTerm) {
+  search(searchTerm) {
     if (!searchTerm) return [];
 
     const token = this.getAccessToken();
+    const url = `${baseURL}/search?type=track&q=${searchTerm}`;
 
     if (!token) {
       window.alert(
@@ -31,87 +34,40 @@ const Spotify = {
       return []; //to prevent error on fetch with undefined token
     }
 
-    try {
-      const response = await fetch(
-        `${baseURL}/search?type=track&q=${searchTerm}`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      if (response.ok) {
-        const jsonResponse = await response.json();
-        if (jsonResponse.tracks.items.length > 0) {
-          return jsonResponse.tracks.items.map(track => ({
-            id: track.id,
-            name: track.name,
-            artist: track.artists[0].name,
-            album: track.album.name,
-            uri: track.uri
-          }));
-        } else {
-          return [];
-        }
+    return FetchService.get(url, token).then(jsonResponse => {
+      if (jsonResponse.tracks.items.length > 0) {
+        return jsonResponse.tracks.items.map(track => ({
+          id: track.id,
+          name: track.name,
+          artist: track.artists[0].name,
+          album: track.album.name,
+          uri: track.uri
+        }));
+      } else {
+        return [];
       }
-    } catch (error) {
-      console.log(error);
-    }
+    });
   },
 
-  async savePlaylist(playlistName, trackURIs) {
+  savePlaylist(playlistName, trackURIs) {
     if (!playlistName || !trackURIs || trackURIs.length === 0) return;
 
     const token = this.getAccessToken();
-    const headers = { Authorization: `Bearer ${token}` };
     let userID = '';
-    let playlistID = '';
 
-    try {
-      const response = await fetch(`${baseURL}/me`, { headers: headers });
-      if (response.ok) {
-        const jsonResponse = await response.json();
-        userID = jsonResponse.id;
-      }
-    } catch (error) {
-      console.log(error);
-    }
-
-    try {
-      const response = await fetch(`${baseURL}/users/${userID}/playlists`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          name: playlistName
-        })
+    return FetchService.get(`${baseURL}/me`, token).then(jsonResponse => {
+      userID = jsonResponse.id;
+      return FetchService.post(`${baseURL}/users/${userID}/playlists`, token, {
+        name: playlistName
+      }).then(jsonResponse => {
+        const playlistID = jsonResponse.id;
+        return FetchService.post(
+          `${baseURL}/users/${userID}/playlists/${playlistID}/tracks`,
+          token,
+          { uris: trackURIs }
+        );
       });
-
-      if (response.ok) {
-        const jsonResponse = await response.json();
-        playlistID = jsonResponse.id;
-      }
-    } catch (error) {
-      console.log(error);
-    }
-
-    try {
-      const response = fetch(
-        `${baseURL}/users/${userID}/playlists/${playlistID}/tracks`,
-        {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify({
-            uris: trackURIs
-          })
-        }
-      );
-
-      if (response.ok) {
-        const jsonResponse = await response.json();
-        playlistID = jsonResponse.snapshot_id;
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    });
   }
 };
 
