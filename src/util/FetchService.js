@@ -4,7 +4,7 @@ class FetchService {
       headers: { Authorization: `Bearer ${token}` }
     };
     return fetch(url, options).then(response => {
-      if (response.status !== 200) {
+      if (!response.ok) {
         throw response;
       }
       return response.json();
@@ -18,7 +18,7 @@ class FetchService {
       body: JSON.stringify(body)
     };
     return fetch(url, options).then(response => {
-      if (response.status !== 200) {
+      if (!response.ok) {
         throw response;
       }
       return response.json();
